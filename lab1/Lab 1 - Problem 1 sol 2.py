@@ -145,12 +145,11 @@ def value_iteration(mdp, gamma, nIt, grade_print=print):
         # sum over s
         for s in range(mdp.nS):
           V[s] = max([sum((p * (r + gamma * Vprev[s1])) for (p, s1, r) in mdp.P[s][a])] for a in mdp.P[s])[0]
-          
-        for s in range(mdp.nS):
           A_a = np.zeros(mdp.nA)
           for a in mdp.P[s]:
             A_a[a] = sum((p * (r + gamma * Vprev[s1])) for (p, s1, r) in mdp.P[s][a])
           pi[s] = np.argmax(A_a)
+          
 
 
         max_diff = np.abs(V - Vprev).max()
