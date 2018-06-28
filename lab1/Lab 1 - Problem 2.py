@@ -86,6 +86,7 @@ def compute_vpi(pi, mdp, gamma):
 				Rs[state, s1] = reward
 		alpha = np.eye(Ps.shape[0]) - Ps * gamma
 		beta = Ps * Rs
+		D = np.linalg.solve(alpha, beta)
 		V = np.linalg.solve(alpha, beta)[:, -1]
 		return V
 
@@ -120,7 +121,11 @@ else:
 
 
 def compute_qpi(vpi, mdp, gamma):
-		Qpi = np.zeros([mdp.nS, mdp.nA]) # REPLACE THIS LINE WITH YOUR CODE
+		Qpi = np.zeros([mdp.nS, mdp.nA])
+		for s in range(mdp.nS):
+			for a in range(mdp.nA):
+				for p, s1, r in mdp.P[s][a]:
+					Qpi[s,a] += p * (r + gamma * vpi[s1])
 		return Qpi
 
 expected_Qpi = np.array([[  0.38 ,   3.135,   1.14 ,   0.095],
@@ -163,6 +168,8 @@ def policy_iteration(mdp, gamma, nIt, grade_print=print):
 		for it in range(nIt):
 				# YOUR CODE HERE
 				# you need to compute qpi which is the state-action values for current pi
+				vpi = compute_vpi(pis[-1], mdp, gamma)
+				qpi = compute_qpi(vpi, mdp, gamma)
 				pi = qpi.argmax(axis=1)
 				grade_print("%4i      | %6i        | %6.5f"%(it, (pi != pi_prev).sum(), vpi[0]))
 				Vs.append(vpi)
@@ -195,4 +202,5 @@ expected_output = """Iteration | # chg actions | V[0]
 
 # Vs_PI, pis_PI = policy_iteration(mdp, gamma=0.95, nIt=20, grade_print=make_grader(expected_output))
 # plt.plot(Vs_PI);
+# plt.show()
 
