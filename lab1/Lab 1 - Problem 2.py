@@ -86,7 +86,7 @@ def compute_vpi(pi, mdp, gamma):
 				Rs[state, s1] = reward
 		alpha = np.eye(Ps.shape[0]) - Ps * gamma
 		beta = Ps * Rs
-		D = np.linalg.solve(alpha, beta)
+		print(np.linalg.solve(alpha, beta))
 		V = np.linalg.solve(alpha, beta)[:, -1]
 		return V
 
