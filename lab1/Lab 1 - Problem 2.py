@@ -76,19 +76,17 @@ def compute_vpi(pi, mdp, gamma):
 		# Rs => mdp.P[state][action] = [(p, s1, r), (...), (...)]
 		###########
 		Ps = np.zeros((mdp.nS, mdp.nS)) # (s, s)
-		Rs = np.zeros((mdp.nS, 1)) # (s, 1)
+		Rs = np.zeros((mdp.nS, mdp.nS)) # (s, s)
 
 		for state in range(mdp.nS):
 			action = pi[state]
-			print(mdp.P[state][action])
+			# print(mdp.P[state][action])
 			for prob, s1, reward in mdp.P[state][action]:
-				Ps[state][s1] = prob
-				if reward != 0: Rs[state] = reward
-		print(Rs)
-		C = np.ones((mdp.nS, mdp.nS)) - gamma * Ps
-		V = np.linalg.solve(C, Rs)
-		print(V)
-
+				Ps[state, s1] = prob
+				Rs[state, s1] = reward
+		alpha = np.eye(Ps.shape[0]) - Ps * gamma
+		beta = Ps * Rs
+		V = np.linalg.solve(alpha, beta)[:, -1]
 		return V
 
 
