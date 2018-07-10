@@ -1,7 +1,6 @@
 
 # coding: utf-8
 
-# In[ ]:
 
 
 """
@@ -37,7 +36,6 @@ import matplotlib.pyplot as plt
 #
 # Suppose we have observations from the following model $y = w x + b + \epsilon$ where $\epsilon \sim \mathcal{N}(0, 0.1)$ and the task is to estimate the linear model parameters $w, b$ from data.
 
-# In[3]:
 
 
 # first generate some observations
@@ -50,7 +48,6 @@ _ = plt.scatter(data_x, data_y, c='b')
 
 # Chainer provides an abstraction called `Link` that describe some computation and keeps track of parameters for it. For instance, a `Linear` link describes a linear map on input and keeps track of `w` and bias `b`.
 
-# In[4]:
 
 # chianer.links.Linear --> L.Linear
 # Linear layer (a.k.a. fully-connected layer)
@@ -78,7 +75,6 @@ print("Operations on chainer.Variable: %s, type: %s" % (var_result, type(var_res
 print("numpy arrays:", model.W.data, var_result.data)
 
 
-# In[5]:
 
 
 # A chainer link is a callable object. calling it performs the
@@ -96,8 +92,6 @@ _ = plt.title("Initial model")
 _ = plt.grid()
 plt.clf()
 # _ = plt.show()
-
-# In[11]:
 
 
 # now let's walk through how to perform forward computation
@@ -127,7 +121,6 @@ print("dloss/dW", model.W.grad)
 # (Hint: if you run into weird problems, maybe the state has been messed up and you can
 # try re-runing all the code blocks from the beginning)
 
-# In[19]:
 
 
 # now we can perform gradient descent to improve this model
@@ -151,12 +144,12 @@ for i in range(100):
 
     data_W_old = model.W.data[:]
     lrate = .90
-    # .91 funny
+    # .90 for 100 repetitions
     if losses[-1] <= loss.data:
-        model.b.data[:] = model.b.data[:] + (1 - lrate) * loss.data
-    
+        model.b.data[:] += (1 - lrate) * loss.data
+
     elif losses[-1] > loss:
-        model.b.data[:] = model.b.data[:] - (1 - lrate) * loss.data
+        model.b.data[:] -= (1 - lrate) * loss.data
 
     if model.W.grad <= 0:
         model.W.data[:] = model.W.data[:] + (1 - lrate) * data_W_old
@@ -164,12 +157,14 @@ for i in range(100):
     elif model.W.grad > 0:
         model.W.data[:] = model.W.data[:] - (1 - lrate) * data_W_old
 
-
+    if loss.data >= 1.0e1:
+        break
     # Hint: you could access gradients with model.W.grad, model.b.grad
     # Hint2: you could write data into a parameter with model.W.data[:] = some_numpy_array
     # Hint3: if your model doesn't learn, remember to try different learning rates
     if i % 25 == 0:
         print("Itr", i, "loss:", loss)
+
 plt.plot(np.array(losses))
 plt.title("Learning curve")
 plt.figure()
@@ -178,7 +173,7 @@ plt.scatter(data_x, data_y, c='b')
 _ = plt.title("Trained model fitness")
 
 plt.grid()
-plt.show()
+# plt.show()
 
 
 # ## Train your first deep model
@@ -187,7 +182,6 @@ plt.show()
 #
 # First we load the data and see what the images look like:
 
-# In[6]:
 
 
 train, test = chainer.datasets.get_mnist()
@@ -204,7 +198,6 @@ _ = plt.title("Label: %s" % train[42][1])
 
 # Next we will provide some boilerplate code and train a linear classifier as an example:
 
-# In[ ]:
 
 
 def run(model, batchsize=16, num_epochs=2):
@@ -240,8 +233,9 @@ def run(model, batchsize=16, num_epochs=2):
 
 
 # Next we will try to improve performance by training an MLP instead. A partial implementation is provided for you to fill in:
-
-# In[ ]:
+# A multilayer perceptron (MLP) is a class of feedforward artificial neural network. 
+# An MLP consists of at least three layers of nodes.
+# https://en.wikipedia.org/wiki/Multilayer_perceptron
 
 
 class MLP(chainer.Chain):
@@ -250,6 +244,7 @@ class MLP(chainer.Chain):
         super(MLP, self).__init__()
         with self.init_scope():
             # the size of the inputs to each layer will be inferred
+            # 3 layers
             self.l1 = L.Linear(None, n_units)  # n_in -> n_units
             self.l2 = L.Linear(None, n_units)  # n_units -> n_units
             self.l3 = L.Linear(None, n_out)  # n_units -> n_out
@@ -259,22 +254,24 @@ class MLP(chainer.Chain):
         #
         # Hint: you should make use of non-linearities / activation functions
         #     https://docs.chainer.org/en/stable/reference/functions.html#activation-functions
-        raise NotImplementedError()
+        # forward input array x to layer 1 --> out: h1
+        h1 = F.relu(self.l1(x))
+        # forward array h1 to layer 2 --> out: h2
+        h2 = F.relu(self.l2(h1))
+        # forward array h2 to output layer 3
+        return self.l3(h2)
 # TODO: uncomment
 # run(MLP(200, 10))
 
-
+plt.close('all')
 # Next you should try to implement logging test loss and see if the model is overfitting.
 
-# In[ ]:
-
-
 def better_run(model, batchsize=16, num_epochs=2):
-
     optimizer = chainer.optimizers.Adam()  # we will use chainer's Adam implementation instead of writing our own gradient based optimization
     optimizer.setup(model)
-
     stats = defaultdict(lambda: deque(maxlen=25))
+    loss_list = []
+    accuracy_list = []
     for epoch in range(num_epochs):
         train_iter = chainer.iterators.SerialIterator(train, batchsize, repeat=False, shuffle=True)
         for itr, batch in enumerate(train_iter):
@@ -292,12 +289,25 @@ def better_run(model, batchsize=16, num_epochs=2):
             stats["loss"].append(float(loss.data))
             stats["accuracy"].append(float((logits.data.argmax(1) == ys).sum() / batchsize))
             if itr % 300 == 0:
+                loss_list.append(loss.data)
+                accuracy_list.append(stats["accuracy"][0])
                 test_iter = chainer.iterators.SerialIterator(test, batchsize, repeat=False, shuffle=False)
                 # *** YOUR CODE implement logging of stats on test set ***
                 print("; ".join("%s: %s" % (k, np.mean(vs)) for k, vs in stats.items()))
+    
+    fig, ax1 = plt.subplots()    
+    plt.title("Learning curve")
+    ax1.plot(loss_list, label='Loss', color='r')
+    ax1.legend(loc='best')
+
+    ax2 = ax1.twinx()
+    ax2.plot(accuracy_list, label='Accuracy', color='b')
+    ax2.legend(loc='best')
+    plt.grid()
+    plt.show()
 
 # TODO: uncomment
-# better_run(MLP(200, 10))
+better_run(MLP(200, 10))
 
 
 # Try different variants!
