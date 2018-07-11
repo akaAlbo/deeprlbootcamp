@@ -2,7 +2,6 @@
 # coding: utf-8
 
 
-
 """
 This project was developed by Peter Chen, Rocky Duan, Pieter Abbeel for the Berkeley Deep RL Bootcamp, August 2017.
 Bootcamp website with slides and lecture videos: https://sites.google.com/view/deep-rl-bootcamp/.
@@ -35,7 +34,6 @@ import matplotlib.pyplot as plt
 # Let's illustrate how Chainer works by a simple 1D regression task.
 #
 # Suppose we have observations from the following model $y = w x + b + \epsilon$ where $\epsilon \sim \mathcal{N}(0, 0.1)$ and the task is to estimate the linear model parameters $w, b$ from data.
-
 
 
 # first generate some observations
@@ -73,8 +71,6 @@ print("Operations on chainer.Variable: %s, type: %s" % (var_result, type(var_res
 
 # the underlying numpy array can be accessed by `data` attribute
 print("numpy arrays:", model.W.data, var_result.data)
-
-
 
 
 # A chainer link is a callable object. calling it performs the
@@ -122,7 +118,6 @@ print("dloss/dW", model.W.grad)
 # try re-runing all the code blocks from the beginning)
 
 
-
 # now we can perform gradient descent to improve this model
 # L.Linear = chainer.links.Linear --> http://docs.chainer.org/en/stable/reference/generated/chainer.links.Linear.html
 # Linear layer (a.k.a. fully-connected layer)
@@ -143,22 +138,9 @@ for i in range(100):
     loss.backward()
 
     data_W_old = model.W.data[:]
-    lrate = .90
-    # .90 for 100 repetitions
-    if losses[-1] <= loss.data:
-        model.b.data[:] += (1 - lrate) * loss.data
-
-    elif losses[-1] > loss:
-        model.b.data[:] -= (1 - lrate) * loss.data
-
-    if model.W.grad <= 0:
-        model.W.data[:] = model.W.data[:] + (1 - lrate) * data_W_old
-
-    elif model.W.grad > 0:
-        model.W.data[:] = model.W.data[:] - (1 - lrate) * data_W_old
-
-    if loss.data >= 1.0e1:
-        break
+    lrate = .15
+    model.W.data -= lrate * model.W.grad
+    model.b.data -= lrate * model.b.grad
     # Hint: you could access gradients with model.W.grad, model.b.grad
     # Hint2: you could write data into a parameter with model.W.data[:] = some_numpy_array
     # Hint3: if your model doesn't learn, remember to try different learning rates
@@ -167,13 +149,14 @@ for i in range(100):
 
 plt.plot(np.array(losses))
 plt.title("Learning curve")
+plt.grid()
 plt.figure()
 plt.plot(data_x, model(data_x[:, None])[:, 0].data, c='r')
 plt.scatter(data_x, data_y, c='b')
 _ = plt.title("Trained model fitness")
 
 plt.grid()
-# plt.show()
+plt.show()
 
 
 # ## Train your first deep model
@@ -181,7 +164,6 @@ plt.grid()
 # Now we have learned the basics of Chainer. We can use it to train a deep model to classify MNIST digits. We will train a model on the MNIST dataset because the dataset is small.
 #
 # First we load the data and see what the images look like:
-
 
 
 train, test = chainer.datasets.get_mnist()
@@ -197,7 +179,6 @@ _ = plt.title("Label: %s" % train[42][1])
 
 
 # Next we will provide some boilerplate code and train a linear classifier as an example:
-
 
 
 def run(model, batchsize=16, num_epochs=2):
@@ -233,10 +214,9 @@ def run(model, batchsize=16, num_epochs=2):
 
 
 # Next we will try to improve performance by training an MLP instead. A partial implementation is provided for you to fill in:
-# A multilayer perceptron (MLP) is a class of feedforward artificial neural network. 
+# A multilayer perceptron (MLP) is a class of feedforward artificial neural network.
 # An MLP consists of at least three layers of nodes.
 # https://en.wikipedia.org/wiki/Multilayer_perceptron
-
 
 class MLP(chainer.Chain):
 
@@ -260,14 +240,39 @@ class MLP(chainer.Chain):
         h2 = F.relu(self.l2(h1))
         # forward array h2 to output layer 3
         return self.l3(h2)
-# TODO: uncomment
-# run(MLP(200, 10))
+
+class LeNet5(chainer.Chain):
+    def __init__(self):
+        super(LeNet5, self).__init__()
+        with self.init_scope():
+            self.conv1 = L.Convolution2D(
+                in_channels=1, out_channels=6, ksize=5, stride=1)
+            self.conv2 = L.Convolution2D(
+                in_channels=6, out_channels=16, ksize=5, stride=1)
+            self.conv3 = L.Convolution2D(
+                in_channels=16, out_channels=120, ksize=4, stride=1)
+            self.fc4 = L.Linear(None, 84)
+            self.fc5 = L.Linear(84, 10)
+
+    def __call__(self, x):
+        h = F.sigmoid(self.conv1(x))
+        h = F.max_pooling_2d(h, 2, 2)
+        h = F.sigmoid(self.conv2(h))
+        h = F.max_pooling_2d(h, 2, 2)
+        h = F.sigmoid(self.conv3(h))
+        h = F.sigmoid(self.fc4(h))
+        if chainer.config.train:
+            return self.fc5(h)
+        return F.softmax(self.fc5(h))
+
 
 plt.close('all')
 # Next you should try to implement logging test loss and see if the model is overfitting.
 
+
 def better_run(model, batchsize=16, num_epochs=2):
     optimizer = chainer.optimizers.Adam()  # we will use chainer's Adam implementation instead of writing our own gradient based optimization
+    # optimizer = chainer.optimizers.MomentumSGD(lr=0.1, momentum=0.9)  # we will use chainer's Adam implementation instead of writing our own gradient based optimization
     optimizer.setup(model)
     stats = defaultdict(lambda: deque(maxlen=25))
     loss_list = []
@@ -288,25 +293,32 @@ def better_run(model, batchsize=16, num_epochs=2):
             # calculate stats
             stats["loss"].append(float(loss.data))
             stats["accuracy"].append(float((logits.data.argmax(1) == ys).sum() / batchsize))
-            if itr % 300 == 0:
+            if itr % 50 == 0:
                 loss_list.append(loss.data)
                 accuracy_list.append(stats["accuracy"][0])
+            if itr % 300 == 0:
                 test_iter = chainer.iterators.SerialIterator(test, batchsize, repeat=False, shuffle=False)
                 # *** YOUR CODE implement logging of stats on test set ***
                 print("; ".join("%s: %s" % (k, np.mean(vs)) for k, vs in stats.items()))
-    
-    fig, ax1 = plt.subplots()    
+
+    fig, ax1 = plt.subplots()
     plt.title("Learning curve")
-    ax1.plot(loss_list, label='Loss', color='r')
-    ax1.legend(loc='best')
+    ax1.plot(loss_list, label='loss', color='r')
+    ax1.set_ylabel('loss', color='r')
+    ax1.tick_params(axis='y', labelcolor='r')
 
     ax2 = ax1.twinx()
-    ax2.plot(accuracy_list, label='Accuracy', color='b')
-    ax2.legend(loc='best')
+    ax2.plot(accuracy_list, label='accuracy', color='b')
+    ax2.set_ylabel('accuracy', color='b')
+    ax2.tick_params(axis='y', labelcolor='b')
+    ax2.axis([0, len(accuracy_list), max(accuracy_list) * .70, max(accuracy_list) * 1.05])
+
     plt.grid()
+    fig.tight_layout()
     plt.show()
 
 # TODO: uncomment
+# run(MLP(200, 10))
 better_run(MLP(200, 10))
 
 
