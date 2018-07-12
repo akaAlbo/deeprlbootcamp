@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     beta = .7
     ax[1, 2].plot(x, af.ELU(A.copy(), beta), 'r')
-    ax[1, 2].legend(['ELU\nAllpha: ' + str(beta)])
+    ax[1, 2].legend(['ELU\nAlpha: ' + str(beta)])
     ax[1, 2].axis([X_MIN, X_MAX, Y_MIN, Y_MAX])
     ax[1, 2].grid()
 
