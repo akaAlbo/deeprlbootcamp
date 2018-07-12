@@ -86,17 +86,17 @@ X_MAX = 5
 Y_MIN = -5
 Y_MAX = 5
 A = np.linspace(X_MIN, X_MAX, 1000)
+x = [a for a in np.linspace(X_MIN, X_MAX, len(A))]
 
 if __name__ == '__main__':
     af = ActivationFunctions()
-    x = [a for a in np.linspace(X_MIN, X_MAX, len(A))]
 
     ###########
     # plotting
     ###########
     fig, ax = plt.subplots(2, 3, figsize=(12, 8))
     fig.suptitle('Activation Functions', fontsize=15, fontweight='normal')
-    ax[0, 0].plot(x, A, 'b')
+    ax[0, 0].plot(x, A.copy(), 'b')
     ax[0, 0].legend(['Normal'])
     ax[0, 0].axis([X_MIN, X_MAX, Y_MIN, Y_MAX])
     ax[0, 0].grid()
