@@ -87,6 +87,7 @@ Y_MIN = -5
 Y_MAX = 5
 A = np.linspace(X_MIN, X_MAX, 1000)
 x = [a for a in np.linspace(X_MIN, X_MAX, len(A))]
+ticks = [a for a in range(X_MIN, X_MAX + 1)]
 
 if __name__ == '__main__':
     af = ActivationFunctions()
@@ -100,33 +101,45 @@ if __name__ == '__main__':
     ax[0, 0].legend(['Normal'])
     ax[0, 0].axis([X_MIN, X_MAX, Y_MIN, Y_MAX])
     ax[0, 0].grid()
+    ax[0, 0].set_yticks(ticks)
+    ax[0, 0].set_xticks(ticks)
 
     ax[0, 1].plot(x, af.softsign(A.copy()), 'b')
     ax[0, 1].legend(['Softsign'])
     ax[0, 1].axis([X_MIN, X_MAX, Y_MIN, Y_MAX])
     ax[0, 1].grid()
+    ax[0, 1].set_yticks(ticks)
+    ax[0, 1].set_xticks(ticks)
 
     alpha = 2.0
     ax[0, 2].plot(x, af.PReLU(A.copy(), alpha), 'b')
     ax[0, 2].legend(['PReLU\nAlpha: ' + str(alpha)])
     ax[0, 2].axis([X_MIN, X_MAX, Y_MIN, Y_MAX])
     ax[0, 2].grid()
+    ax[0, 2].set_yticks(ticks)
+    ax[0, 2].set_xticks(ticks)
 
     ax[1, 0].plot(x, af.ReLU(A.copy()), 'r')
     ax[1, 0].legend(['ReLU'])
     ax[1, 0].axis([X_MIN, X_MAX, Y_MIN, Y_MAX])
     ax[1, 0].grid()
+    ax[1, 0].set_yticks(ticks)
+    ax[1, 0].set_xticks(ticks)
 
     ax[1, 1].plot(x, af.sigmoid(A.copy()), 'r')
     ax[1, 1].legend(['Sigmoid'])
     ax[1, 1].axis([X_MIN, X_MAX, Y_MIN, Y_MAX])
     ax[1, 1].grid()
+    ax[1, 1].set_yticks(ticks)
+    ax[1, 1].set_xticks(ticks)
 
     beta = .7
     ax[1, 2].plot(x, af.ELU(A.copy(), beta), 'r')
     ax[1, 2].legend(['ELU\nAlpha: ' + str(beta)])
     ax[1, 2].axis([X_MIN, X_MAX, Y_MIN, Y_MAX])
     ax[1, 2].grid()
+    ax[1, 2].set_yticks(ticks)
+    ax[1, 2].set_xticks(ticks)
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
