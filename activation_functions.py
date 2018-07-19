@@ -6,11 +6,13 @@ Created on July 11, 2018
 @author: flg-ma
 @attention: compare different activation functions for ML
 @contact: albus.marcel@gmail.com (Marcel Albus)
-@version: 1.0.0
+@version: 1.1.0
 
 #############################################################################################
 
 History:
+- v1.1.0: - updated axis ticks
+          - added new functions
 - v1.0.0: first init
 """
 
@@ -26,8 +28,8 @@ class ActivationFunctions():
     def ReLU(self, data):
         """ 
         $f(x) = \begin{cases}
-                0 & \text{f"ur } x < 0 \\
-                x & \text{f"ur } x >= 0
+                0 & \text{für } x < 0 \\
+                x & \text{für } x >= 0
                 \end{cases}$
         returns the given data as ReLU (Rectified linear unit) function
         data: numpy array
@@ -48,8 +50,8 @@ class ActivationFunctions():
     def PReLU(self, data, alpha):
         """ 
         $f(x) = \begin{cases}
-                \alpha \cdot 0 & \text{f"ur } x < 0 \\
-                x & \text{f"ur } x >= 0
+                \alpha \cdot 0 & \text{für } x < 0 \\
+                x & \text{für } x >= 0
                 \end{cases}$
         returns the given data as PReLU (parametric rectified linear unit) function
         data: numpy array
@@ -70,8 +72,8 @@ class ActivationFunctions():
     def ELU(self, data, alpha):
         """ 
         $f(x) = \begin{cases}
-                \alpha (\exp{x} - 1) & \text{f"ur } x < 0 \\
-                x & \text{f"ur } x >= 0
+                \alpha (\exp{x} - 1) & \text{für } x < 0 \\
+                x & \text{für } x >= 0
                 \end{cases}$
         returns the given data as ELU (exponential linear unit) function
         data: numpy array
@@ -79,6 +81,14 @@ class ActivationFunctions():
         """
         data[ data < 0] = alpha * (np.exp(data[ data < 0]) - 1)
         return data
+
+    def softmax(self, data):
+        # TODO: implement
+        pass
+
+    def log_softmax(self, data):
+        # TODO: implement
+        pass
 
 
 X_MIN = -5
@@ -141,5 +151,7 @@ if __name__ == '__main__':
     ax[1, 2].set_yticks(ticks)
     ax[1, 2].set_xticks(ticks)
 
+    # rect = [left, bottom, right, top] in the normalized figure coordinate 
+    # that the whole subplots area (including labels) will fit into. Default is [0, 0, 1, 1].
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
