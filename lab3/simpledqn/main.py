@@ -201,34 +201,16 @@ class DQN(object):
         time step). Should be of shape N.
         :return: A chainer variable holding a scalar loss.
         """
-        "*** YOUR CODE HERE ***"
         # N == 64
         # Hint: You may want to make use of the following fields: self._discount, self._q, self._qt
         # Hint2: Q-function can be called by self._q.forward(argument)
-        q_values = []
-        y = []
-        print('l_act: ', F.get_item(l_act, 0))
-        print('l_act: ', l_act)
-        print('l_rew: ', l_rew)
-        print('l_done: ', l_done)
-        q_values = self._q.forward(l_obs)
-        print('q_values: ', q_values)
-        print('q_values shape: ', q_values.shape)
         # Hint3: You might also find https://docs.chainer.org/en/stable/reference/generated/chainer.functions.select_item.html useful
         # chainer.functions.select_item:
         # This function returns t.choose(x.T), that means y[i] == x[i, t[i]] for all i
         # extract q_values for chosen actions out of Q-function NN
-        q_values = F.select_item(self._q.forward(l_obs), l_act)
-        print('q_values new: ', q_values)
-
-        for time in range(len(l_obs)):
-            if F.get_item(l_done, time) is True:
-                y.append(F.get_item(l_rew, time))
-            else:
-                y.append(F.get_item(l_rew, time) + self._discount * max(self._qt.forward(F.get_item(l_obs, time))))
-        loss = F.squared_error(y, self._q.forward(l_act))
-        print('loss: ', loss)
-        return loss
+        q = F.select_item(self._q.forward(l_obs), l_act)
+        y = l_rew + (1 - l_done) * self._discount * F.max(self._qt.forward(l_next_obs), axis=1)
+        return F.mean_squared_error(y, q)
 
     def compute_double_q_learning_loss(self, l_obs, l_act, l_rew, l_next_obs, l_done):
         """
