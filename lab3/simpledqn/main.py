@@ -226,9 +226,12 @@ class DQN(object):
         # Hint: You may want to make use of the following fields: self._discount, self._q, self._qt
         # Hint2: Q-function can be called by self._q.forward(argument)
         # Hint3: You might also find https://docs.chainer.org/en/stable/reference/generated/chainer.functions.select_item.html useful
-        loss = C.Variable(np.array([0.]))  # TODO: replace this line
-        "*** YOUR CODE HERE ***"
-        return loss
+        q = F.select_item(self._q.forward(l_obs), l_act)
+        actions = F.argmax(self._qt.forward(l_next_obs), axis=1)
+        states = F.select_item(self._qt.forward(l_next_obs), actions)
+        q_t = F.select_item(self._qt.forward(l_next_obs), states)
+        y = l_rew + (1 - l_done) * self._discount * q_t
+        return F.mean_squared_error(y, q)
 
     def train_q(self, l_obs, l_act, l_rew, l_next_obs, l_done):
         """Update Q-value function by sampling from the replay buffer."""
