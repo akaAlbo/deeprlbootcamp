@@ -227,9 +227,8 @@ class DQN(object):
         # Hint2: Q-function can be called by self._q.forward(argument)
         # Hint3: You might also find https://docs.chainer.org/en/stable/reference/generated/chainer.functions.select_item.html useful
         q = F.select_item(self._q.forward(l_obs), l_act)
-        actions = F.argmax(self._qt.forward(l_next_obs), axis=1)
-        states = F.select_item(self._qt.forward(l_next_obs), actions)
-        q_t = F.select_item(self._qt.forward(l_next_obs), states)
+        next_action = F.argmax(self._q.forward(l_next_obs), axis=1)
+        q_t = F.select_item(self._qt.forward(l_next_obs), next_action)
         y = l_rew + (1 - l_done) * self._discount * q_t
         return F.mean_squared_error(y, q)
 
