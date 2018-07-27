@@ -201,12 +201,16 @@ class DQN(object):
         time step). Should be of shape N.
         :return: A chainer variable holding a scalar loss.
         """
+        # N == 64
         # Hint: You may want to make use of the following fields: self._discount, self._q, self._qt
         # Hint2: Q-function can be called by self._q.forward(argument)
         # Hint3: You might also find https://docs.chainer.org/en/stable/reference/generated/chainer.functions.select_item.html useful
-        loss = C.Variable(np.array([0.]))  # TODO: replace this line
-        "*** YOUR CODE HERE ***"
-        return loss
+        # chainer.functions.select_item:
+        # This function returns t.choose(x.T), that means y[i] == x[i, t[i]] for all i
+        # extract q_values for chosen actions out of Q-function NN
+        q = F.select_item(self._q.forward(l_obs), l_act)
+        y = l_rew + (1 - l_done) * self._discount * F.max(self._qt.forward(l_next_obs), axis=1)
+        return F.mean_squared_error(y, q)
 
     def compute_double_q_learning_loss(self, l_obs, l_act, l_rew, l_next_obs, l_done):
         """
@@ -222,9 +226,11 @@ class DQN(object):
         # Hint: You may want to make use of the following fields: self._discount, self._q, self._qt
         # Hint2: Q-function can be called by self._q.forward(argument)
         # Hint3: You might also find https://docs.chainer.org/en/stable/reference/generated/chainer.functions.select_item.html useful
-        loss = C.Variable(np.array([0.]))  # TODO: replace this line
-        "*** YOUR CODE HERE ***"
-        return loss
+        q = F.select_item(self._q.forward(l_obs), l_act)
+        next_action = F.argmax(self._q.forward(l_next_obs), axis=1)
+        q_t = F.select_item(self._qt.forward(l_next_obs), next_action)
+        y = l_rew + (1 - l_done) * self._discount * q_t
+        return F.mean_squared_error(y, q)
 
     def train_q(self, l_obs, l_act, l_rew, l_next_obs, l_done):
         """Update Q-value function by sampling from the replay buffer."""
