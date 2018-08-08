@@ -284,7 +284,11 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
             """
             baselines = np.zeros(len(all_returns))
             for t in range(len(all_returns)):
-                "*** YOUR CODE HERE ***"
+                "*** YOUR CODE HERE *** --> DONE"
+                if all_returns[t] == []:
+                    baselines[t] = 0.
+                else:
+                    baselines[t] = np.mean(all_returns[t])
             return baselines
 
         if use_baseline:
