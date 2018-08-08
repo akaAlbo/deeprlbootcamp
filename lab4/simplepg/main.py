@@ -250,8 +250,11 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                     """
                     R_t = 0.
                     pg_theta = np.zeros_like(theta)
-                    "*** YOUR CODE HERE ***"
-                    return R_t, pg_theta
+                    "*** YOUR CODE HERE *** --> DONE"
+                    R_t = discount * R_tplus1 + r_t
+                    advantage = R_t - b_t
+                    pg_theta = get_grad_logp_action(theta, s_t, a_t) * advantage # parameters: theta, ob, action
+                    return R_t, pg_theta # pg_theta = grad_t
 
                 # Test the implementation, but only once
                 test_once(compute_update)
