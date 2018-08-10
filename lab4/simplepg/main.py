@@ -116,7 +116,21 @@ def cartpole_get_grad_logp_action(theta, ob, action):
     :return: A matrix of size |A| * (|S|+1)
     """
     grad = np.zeros_like(theta)
-    "*** YOUR CODE HERE ***"
+    "*** YOUR CODE HERE *** --> TODO"
+    # s_tilde
+    ob_1 = include_bias(ob)
+    # probability
+    prob = softmax(theta.dot(ob_1))
+    print('#' * 100)
+    # generate hot vector
+    hot_vector_a = np.zeros([2,])
+    # set position a to 1
+    hot_vector_a[action - 1] = 1.
+    print('Shapes:', prob.shape, hot_vector_a.shape, ob_1.shape)
+    print('prob', prob)
+    print('e_a', hot_vector_a)
+    print('ob_1', ob_1)
+    grad = np.outer((hot_vector_a - prob), np.transpose(ob_1))
     return grad
 
 
