@@ -123,9 +123,9 @@ def cartpole_get_grad_logp_action(theta, ob, action):
     prob = softmax(theta.dot(ob_1))
     print('#' * 100)
     # generate hot vector
-    hot_vector_a = np.zeros([2,])
+    hot_vector_a = np.zeros_like(ob_1)
     # set position a to 1
-    hot_vector_a[action - 1] = 1.
+    hot_vector_a[action] = 1.
     print('Shapes:', prob.shape, hot_vector_a.shape, ob_1.shape)
     print('prob', prob)
     print('e_a', hot_vector_a)
