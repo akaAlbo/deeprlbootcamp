@@ -342,7 +342,7 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                 """
                 natural_grad = np.zeros_like(grad)
                 "*** YOUR CODE HERE *** --> DONE"
-                # compute invers
+                # compute invers with F = F + reg * I
                 F_inv = np.linalg.inv(F + reg * np.eye(F.shape[0]))
                 # compute F^-1 * g
                 natural_grad = F_inv.dot(grad.flatten())
@@ -358,7 +358,10 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                 :return: A scalar
                 """
                 step_size = 0.
-                "*** YOUR CODE HERE ***"
+                "*** YOUR CODE HERE *** --> DONE"
+                g = natural_grad.flatten()
+                alpha_squared = (2 * natural_step_size) / np.dot(np.dot(g.T, F), g)
+                step_size = np.sqrt(alpha_squared)
                 return step_size
 
             test_once(compute_fisher_matrix)
