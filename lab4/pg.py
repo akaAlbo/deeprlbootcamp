@@ -74,7 +74,13 @@ def pg(env, env_maker, policy, baseline, n_envs=mp.cpu_count(), last_iter=-1, n_
                 :return: A chainer variable, which should be a scalar
                 """
                 surr_loss = Variable(np.array(0.))
-                "*** YOUR CODE HERE ***"
+                loss = Variable(np.array(0.))
+                "*** YOUR CODE HERE *** --> TODO"
+                for i in range(len(all_acts)):
+                    loss -= dists.logli(all_acts[i]) * all_advs[i]
+
+                loss /= len(all_advs)
+                surr_loss = loss
                 return surr_loss
 
             test_once(compute_surr_loss)
