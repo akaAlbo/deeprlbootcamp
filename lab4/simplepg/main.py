@@ -326,9 +326,14 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                 d = len(theta.flatten())
                 F = np.zeros((d, d))
                 "*** YOUR CODE HERE *** --> DONE"
-                grad = get_grad_logp_action(theta, all_observations, all_actions)
-                # compute fisher matrix
-                F = np.outer(grad, grad)
+                # Where approximating the fisher matrix from sampled gradlogs
+                # so we use the mean of all our estimates, which are outer(gradlogs, gradlogs)
+                for i in range(len(all_observations)):
+                    ob = all_observations[i]
+                    action = all_actions[i]
+                    grad_logp = get_grad_logp_action(theta, ob, action)
+                    # compute fisher matrix
+                    F += np.outer(grad_logp, grad_logp)
                 # normalize across all samples
                 F /= len(all_observations)
                 return F
