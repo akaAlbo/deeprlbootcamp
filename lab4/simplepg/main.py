@@ -116,7 +116,7 @@ def cartpole_get_grad_logp_action(theta, ob, action):
     :return: A matrix of size |A| * (|S|+1)
     """
     grad = np.zeros_like(theta)
-    "*** YOUR CODE HERE *** --> TODO"
+    "*** YOUR CODE HERE *** --> DONE"
     # s_tilde
     ob_1 = include_bias(ob)
     # probability
@@ -325,7 +325,12 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                 """
                 d = len(theta.flatten())
                 F = np.zeros((d, d))
-                "*** YOUR CODE HERE ***"
+                "*** YOUR CODE HERE *** --> DONE"
+                grad = get_grad_logp_action(theta, all_observations, all_actions)
+                F = np.outer(grad, grad)
+                F /= len(all_observations)
+                print('grad', grad.shape)
+                print('F', F)
                 return F
 
             def compute_natural_gradient(F, grad, reg=1e-4):
