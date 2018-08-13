@@ -121,15 +121,10 @@ def cartpole_get_grad_logp_action(theta, ob, action):
     ob_1 = include_bias(ob)
     # probability
     prob = softmax(theta.dot(ob_1))
-    print('#' * 100)
     # generate hot vector
-    hot_vector_a = np.zeros_like(ob_1)
+    hot_vector_a = np.zeros_like(prob)
     # set position a to 1
-    hot_vector_a[action] = 1.
-    print('Shapes:', prob.shape, hot_vector_a.shape, ob_1.shape)
-    print('prob', prob)
-    print('e_a', hot_vector_a)
-    print('ob_1', ob_1)
+    hot_vector_a[action] = 1.0
     grad = np.outer((hot_vector_a - prob), np.transpose(ob_1))
     return grad
 
