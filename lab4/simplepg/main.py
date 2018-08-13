@@ -327,10 +327,10 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                 F = np.zeros((d, d))
                 "*** YOUR CODE HERE *** --> DONE"
                 grad = get_grad_logp_action(theta, all_observations, all_actions)
+                # compute fisher matrix
                 F = np.outer(grad, grad)
+                # normalize across all samples
                 F /= len(all_observations)
-                print('grad', grad.shape)
-                print('F', F)
                 return F
 
             def compute_natural_gradient(F, grad, reg=1e-4):
@@ -341,7 +341,13 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                 :return: A matrix of size |A| * (|S|+1)
                 """
                 natural_grad = np.zeros_like(grad)
-                "*** YOUR CODE HERE ***"
+                "*** YOUR CODE HERE *** --> DONE"
+                # compute invers
+                F_inv = np.linalg.inv(F + reg * np.eye(F.shape[0]))
+                # compute F^-1 * g
+                natural_grad = F_inv.dot(grad.flatten())
+                # reshape to matrix shape of theta == shape of grad
+                natural_grad = natural_grad.reshape(grad.shape)
                 return natural_grad
 
             def compute_step_size(F, natural_grad, natural_step_size):
