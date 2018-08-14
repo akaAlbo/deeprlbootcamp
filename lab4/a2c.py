@@ -81,7 +81,17 @@ def compute_returns_advantages(rewards, dones, values, next_values, discount):
     """
     Rs = np.zeros_like(rewards)
     As = np.zeros_like(rewards)
-    "*** YOUR CODE HERE ***"
+    "*** YOUR CODE HERE *** --> TODO"
+    R_T = next_values
+    # set T as Timesteps
+    T = rewards.shape[0]
+    # compute Rs[-1] from V(s_t+1)
+    Rs[T - 1] = rewards[T - 1] + (1.0 - dones[T - 1]) * (discount * R_T)
+    # compute rest of Rs from previous values
+    for t in range(T - 2, -1, -1):
+        Rs[t] = rewards[t] + (1.0 - dones[t]) * (discount * Rs[t + 1])
+    As = Rs - values
+    return (Rs, As)
 
 
 def a2c(env, env_maker, policy, vf, joint_model=None, k=20, n_envs=16, discount=0.99,
