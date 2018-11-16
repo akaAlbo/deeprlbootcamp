@@ -73,8 +73,18 @@ def pg(env, env_maker, policy, baseline, n_envs=mp.cpu_count(), last_iter=-1, n_
                 :param all_advs: A chainer variable, which should be a vector of size N
                 :return: A chainer variable, which should be a scalar
                 """
-                surr_loss = Variable(np.array(0.))
-                "*** YOUR CODE HERE ***"
+                surr_loss = Variable(np.array(0., dtype=np.float32))
+                "*** YOUR CODE HERE *** --> DONE"
+                # working implementation, but very slow --> computational inefficient
+                # loss = Variable(np.array(0., dtype=np.float32))
+                # for i in range(len(all_acts)):
+                #     loss -= dists.logli(all_acts)[i] * all_advs[i]
+                # loss /= len(all_advs)
+                # surr_loss = loss
+
+                # working implementation, workds fast --> computational efficient
+                logli = dists.logli(all_acts)
+                surr_loss -= F.mean(logli * all_advs)
                 return surr_loss
 
             test_once(compute_surr_loss)

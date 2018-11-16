@@ -81,7 +81,17 @@ def compute_returns_advantages(rewards, dones, values, next_values, discount):
     """
     Rs = np.zeros_like(rewards)
     As = np.zeros_like(rewards)
-    "*** YOUR CODE HERE ***"
+    "*** YOUR CODE HERE *** --> DONE"
+    R_T = next_values
+    # set T as Timesteps
+    T = rewards.shape[0]
+    # compute Rs[-1] from V(s_t+1)
+    Rs[T - 1] = rewards[T - 1] + (1.0 - dones[T - 1]) * (discount * R_T)
+    # compute rest of Rs from previous values
+    for t in range(T - 2, -1, -1):
+        Rs[t] = rewards[t] + (1.0 - dones[t]) * (discount * Rs[t + 1])
+    As = Rs - values
+    return (Rs, As)
 
 
 def a2c(env, env_maker, policy, vf, joint_model=None, k=20, n_envs=16, discount=0.99,
@@ -213,10 +223,21 @@ def a2c(env, env_maker, policy, vf, joint_model=None, k=20, n_envs=16, discount=
                 vf_loss should be the (unweighted) squared loss of value function prediction.
                 total_loss should be the weighted sum of policy_loss and vf_loss
                 """
-                policy_loss = Variable(np.array(0.))
-                vf_loss = Variable(np.array(0.))
-                total_loss = Variable(np.array(0.))
-                "*** YOUR CODE HERE ***"
+                policy_loss = Variable(np.array(0., dtype=np.float32))
+                vf_loss = Variable(np.array(0., dtype=np.float32))
+                total_loss = Variable(np.array(0., dtype=np.float32))
+                "*** YOUR CODE HERE *** --> TODO"
+                # variables to math symbols:
+                beta = ent_coeff
+                mu = vf_loss_coeff
+                H = ent
+
+                # surr_loss from pg.py::compute_surr_loss
+                L_hat = Variable(np.array(0., dtype=np.float32))
+                L_hat -= F.mean(logli * all_advs) # surrogate loss
+                policy_loss += L_hat - beta * F.mean(H) # surr_loss - entropy_loss
+                vf_loss += F.mean(F.squared_difference(all_returns, all_values))
+                total_loss += policy_loss + vf_loss_coeff * vf_loss
                 return policy_loss, vf_loss, total_loss
 
             test_once(compute_total_loss)

@@ -46,8 +46,11 @@ def point_get_grad_logp_action(theta, ob, action):
     :param action: A vector of size |A|
     :return: A matrix of size |A| * (|S|+1)
     """
+    "*** YOUR CODE HERE *** --> DONE"
     grad = np.zeros_like(theta)
-    "*** YOUR CODE HERE ***"
+    ob_1 = include_bias(ob)
+    mean = theta.dot(ob_1)
+    grad = np.outer((action - mean), np.transpose(ob_1))
     return grad
 
 
@@ -113,7 +116,16 @@ def cartpole_get_grad_logp_action(theta, ob, action):
     :return: A matrix of size |A| * (|S|+1)
     """
     grad = np.zeros_like(theta)
-    "*** YOUR CODE HERE ***"
+    "*** YOUR CODE HERE *** --> DONE"
+    # s_tilde
+    ob_1 = include_bias(ob)
+    # probability
+    prob = softmax(theta.dot(ob_1))
+    # generate hot vector
+    hot_vector_a = np.zeros_like(prob)
+    # set position a to 1
+    hot_vector_a[action] = 1.0
+    grad = np.outer((hot_vector_a - prob), np.transpose(ob_1))
     return grad
 
 
@@ -241,14 +253,17 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                     :param a_t: Either a vector of size |A| or an integer, depending on the environment
                     :param r_t: A scalar
                     :param b_t: A scalar
-                    :param get_grad_logp_action: A function, mapping from (theta, ob, action) to the gradient (a 
+                    :param get_grad_logp_action: A function, mapping from (theta, ob, action) to the gradient (a
                     matrix of size |A| * (|S|+1) )
                     :return: A tuple, consisting of a scalar and a matrix of size |A| * (|S|+1)
                     """
                     R_t = 0.
                     pg_theta = np.zeros_like(theta)
-                    "*** YOUR CODE HERE ***"
-                    return R_t, pg_theta
+                    "*** YOUR CODE HERE *** --> DONE"
+                    R_t = discount * R_tplus1 + r_t
+                    advantage = R_t - b_t
+                    pg_theta = get_grad_logp_action(theta, s_t, a_t) * advantage # parameters: theta, ob, action
+                    return R_t, pg_theta # pg_theta = grad_t
 
                 # Test the implementation, but only once
                 test_once(compute_update)
@@ -272,13 +287,17 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
 
         def compute_baselines(all_returns):
             """
-            :param all_returns: A list of size T, where the t-th entry is a list of numbers, denoting the returns 
+            :param all_returns: A list of size T, where the t-th entry is a list of numbers, denoting the returns
             collected at time step t across different episodes
             :return: A vector of size T
             """
             baselines = np.zeros(len(all_returns))
             for t in range(len(all_returns)):
-                "*** YOUR CODE HERE ***"
+                "*** YOUR CODE HERE *** --> DONE"
+                if all_returns[t] == []:
+                    baselines[t] = 0.
+                else:
+                    baselines[t] = np.mean(all_returns[t])
             return baselines
 
         if use_baseline:
@@ -297,16 +316,26 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
             def compute_fisher_matrix(theta, get_grad_logp_action, all_observations, all_actions):
                 """
                 :param theta: A matrix of size |A| * (|S|+1)
-                :param get_grad_logp_action: A function, mapping from (theta, ob, action) to the gradient (a matrix 
+                :param get_grad_logp_action: A function, mapping from (theta, ob, action) to the gradient (a matrix
                 of size |A| * (|S|+1) )
                 :param all_observations: A list of vectors of size |S|
                 :param all_actions: A list of vectors of size |A|
-                :return: A matrix of size (|A|*(|S|+1)) * (|A|*(|S|+1)), i.e. #columns and #rows are the number of 
+                :return: A matrix of size (|A|*(|S|+1)) * (|A|*(|S|+1)), i.e. #columns and #rows are the number of
                 entries in theta
                 """
                 d = len(theta.flatten())
                 F = np.zeros((d, d))
-                "*** YOUR CODE HERE ***"
+                "*** YOUR CODE HERE *** --> DONE"
+                # Where approximating the fisher matrix from sampled gradlogs
+                # so we use the mean of all our estimates, which are outer(gradlogs, gradlogs)
+                for i in range(len(all_observations)):
+                    ob = all_observations[i]
+                    action = all_actions[i]
+                    grad_logp = get_grad_logp_action(theta, ob, action)
+                    # compute fisher matrix
+                    F += np.outer(grad_logp, grad_logp)
+                # normalize across all samples
+                F /= len(all_observations)
                 return F
 
             def compute_natural_gradient(F, grad, reg=1e-4):
@@ -317,7 +346,13 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                 :return: A matrix of size |A| * (|S|+1)
                 """
                 natural_grad = np.zeros_like(grad)
-                "*** YOUR CODE HERE ***"
+                "*** YOUR CODE HERE *** --> DONE"
+                # compute invers with F = F + reg * I
+                F_inv = np.linalg.inv(F + reg * np.eye(F.shape[0]))
+                # compute F^-1 * g
+                natural_grad = F_inv.dot(grad.flatten())
+                # reshape to matrix shape of theta == shape of grad
+                natural_grad = natural_grad.reshape(grad.shape)
                 return natural_grad
 
             def compute_step_size(F, natural_grad, natural_step_size):
@@ -328,7 +363,10 @@ def main(env_id, batch_size, discount, learning_rate, n_itrs, render, use_baseli
                 :return: A scalar
                 """
                 step_size = 0.
-                "*** YOUR CODE HERE ***"
+                "*** YOUR CODE HERE *** --> DONE"
+                g = natural_grad.flatten()
+                alpha_squared = (2 * natural_step_size) / np.dot(np.dot(g.T, F), g)
+                step_size = np.sqrt(alpha_squared)
                 return step_size
 
             test_once(compute_fisher_matrix)
